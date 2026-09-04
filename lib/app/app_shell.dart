@@ -13,18 +13,16 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   int _index = 1;
 
-  final _pages = const [
-    HallPage(),
-    CreatorPage(),
-    LibraryPage(),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(
         index: _index,
-        children: _pages,
+        children: const [
+          HallPage(),
+          CreatorPage(),
+          LibraryPage(),
+        ],
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
