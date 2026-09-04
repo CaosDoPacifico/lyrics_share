@@ -26,10 +26,36 @@ class _LibraryPageState extends State<LibraryPage> {
     if (mounted) setState(() {});
   }
 
+  Future<void> _confirmRemove(Draft draft) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.surface,
+          title: const Text('Remover rascunho?'),
+          content: Text(draft.title.isEmpty ? 'Sem título' : draft.title),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Remover'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (ok == true) {
+      await DraftStore.remove(draft.id);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final drafts = DraftStore.drafts;
-    debugPrint('Library build: ${drafts.length} rascunhos');
 
     return SafeArea(
       child: Padding(
@@ -48,14 +74,14 @@ class _LibraryPageState extends State<LibraryPage> {
             ),
             const SizedBox(height: 6),
             const Text(
-              'Rascunhos salvos neste computador.',
+              'Toque no item para editar. Lixeira para remover.',
               style: TextStyle(fontSize: 14, color: AppTheme.muted),
             ),
             const SizedBox(height: 20),
             Expanded(
               child: drafts.isEmpty
                   ? const Text(
-                      'Nada salvo ainda. No Creator, monte um card e toque em Salvar na Library.',
+                      'Nada salvo ainda.',
                       style: TextStyle(color: AppTheme.muted),
                     )
                   : ListView.separated(
@@ -64,38 +90,35 @@ class _LibraryPageState extends State<LibraryPage> {
                           const SizedBox(height: 10),
                       itemBuilder: (context, index) {
                         final draft = drafts[index];
-                        return Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: AppTheme.surface,
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: const Color(0x22FFFFFF)),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                draft.title.isEmpty ? 'Sem título' : draft.title,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppTheme.text,
-                                ),
+                        return Material(
+                          color: AppTheme.surface,
+                          borderRadius: BorderRadius.circular(18),
+                          child: ListTile(
+                            onTap: () => DraftStore.openInCreator(draft),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18),
+                              side: const BorderSide(color: Color(0x22FFFFFF)),
+                            ),
+                            title: Text(
+                              draft.title.isEmpty ? 'Sem título' : draft.title,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.text,
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                [
-                                  if (draft.artist.isNotEmpty) draft.artist,
-                                  if (draft.audioName != null) draft.audioName!,
-                                  '${draft.selectedLines.length} linhas no card',
-                                ].join('  ·  '),
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: AppTheme.muted,
-                                ),
-                              ),
-                            ],
+                            ),
+                            subtitle: Text(
+                              [
+                                if (draft.artist.isNotEmpty) draft.artist,
+                                if (draft.audioName != null) draft.audioName!,
+                                '${draft.selectedLines.length} linhas no card',
+                              ].join('  ·  '),
+                              style: const TextStyle(color: AppTheme.muted),
+                            ),
+                            trailing: IconButton(
+                              onPressed: () => _confirmRemove(draft),
+                              icon: const Icon(Icons.delete_outline),
+                              color: AppTheme.muted,
+                            ),
                           ),
                         );
                       },

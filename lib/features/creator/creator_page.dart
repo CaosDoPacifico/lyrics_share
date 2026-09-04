@@ -31,6 +31,39 @@ class _CreatorPageState extends State<CreatorPage> {
   bool get hasAudio => audioFile != null;
   bool get hasExcerpt => selectedLyricText.isNotEmpty;
 
+  @override
+  void initState() {
+    super.initState();
+    DraftStore.creatorTick.addListener(_openPendingDraft);
+  }
+
+  @override
+  void dispose() {
+    DraftStore.creatorTick.removeListener(_openPendingDraft);
+    super.dispose();
+  }
+
+  void _openPendingDraft() {
+    final draft = DraftStore.opening;
+    if (draft == null) return;
+    DraftStore.opening = null;
+    setState(() {
+      title = draft.title;
+      artist = draft.artist;
+      lyrics = draft.lyrics;
+      audioFile = null;
+      if (draft.selectedLines.isNotEmpty) {
+        rangeStart = draft.selectedLines.first;
+        rangeEnd = draft.selectedLines.last;
+        anchor = rangeStart;
+      } else {
+        rangeStart = null;
+        rangeEnd = null;
+        anchor = null;
+      }
+    });
+  }
+
   List<String> get lyricLines {
     if (lyrics == null || lyrics!.trim().isEmpty) return const [];
     return lyrics!.split('\n');
@@ -247,8 +280,6 @@ class _CreatorPageState extends State<CreatorPage> {
   }
 
   Future<void> _saveDraft() async {
-    debugPrint('SAVE tapped. hasSong=$hasSong title=$title');
-
     if (!hasSong) {
       await _showMessage('Adiciona a música primeiro.');
       return;

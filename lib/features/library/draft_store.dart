@@ -54,11 +54,21 @@ class Draft {
 
 class DraftStore {
   static final ValueNotifier<int> version = ValueNotifier(0);
+  static final ValueNotifier<int> creatorTick = ValueNotifier(0);
+  static final ValueNotifier<int?> goToTab = ValueNotifier(null);
   static final List<Draft> drafts = [];
+  static Draft? opening;
 
   static Future<File> _file() async {
     final dir = await getApplicationSupportDirectory();
     return File('${dir.path}/drafts.json');
+  }
+
+  static Future<void> _persist() async {
+    final file = await _file();
+    await file.writeAsString(
+      jsonEncode([for (final item in drafts) item.toJson()]),
+    );
   }
 
   static Future<void> load() async {
@@ -83,16 +93,18 @@ class DraftStore {
   static Future<void> add(Draft draft) async {
     drafts.insert(0, draft);
     version.value++;
+    await _persist();
+  }
 
-    try {
-      final file = await _file();
-      await file.writeAsString(
-        jsonEncode([for (final item in drafts) item.toJson()]),
-      );
-    } catch (error, stack) {
-      debugPrint('DraftStore.add persist failed: $error');
-      debugPrint('$stack');
-      rethrow;
-    }
+  static Future<void> remove(String id) async {
+    drafts.removeWhere((item) => item.id == id);
+    version.value++;
+    await _persist();
+  }
+
+  static void openInCreator(Draft draft) {
+    opening = draft;
+    creatorTick.value++;
+    goToTab.value = 1;
   }
 }

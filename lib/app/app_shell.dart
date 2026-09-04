@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../features/hall/hall_page.dart';
 import '../features/creator/creator_page.dart';
+import '../features/hall/hall_page.dart';
+import '../features/library/draft_store.dart';
 import '../features/library/library_page.dart';
 
 class AppShell extends StatefulWidget {
@@ -12,6 +13,22 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   int _index = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    DraftStore.creatorTick.addListener(_openCreator);
+  }
+
+  @override
+  void dispose() {
+    DraftStore.creatorTick.removeListener(_openCreator);
+    super.dispose();
+  }
+
+  void _openCreator() {
+    setState(() => _index = 1);
+  }
 
   @override
   Widget build(BuildContext context) {
