@@ -1,6 +1,6 @@
 # lyrics_share
 
-A new Flutter project.
+just tryin new things
 
 ## Getting Started
 
