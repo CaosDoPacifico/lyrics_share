@@ -54,10 +54,7 @@ class Draft {
 
 class DraftStore {
   static final ValueNotifier<int> version = ValueNotifier(0);
-  static final ValueNotifier<int> creatorTick = ValueNotifier(0);
-  static final ValueNotifier<int?> goToTab = ValueNotifier(null);
   static final List<Draft> drafts = [];
-  static Draft? opening;
 
   static Future<File> _file() async {
     final dir = await getApplicationSupportDirectory();
@@ -100,11 +97,5 @@ class DraftStore {
     drafts.removeWhere((item) => item.id == id);
     version.value++;
     await _persist();
-  }
-
-  static void openInCreator(Draft draft) {
-    opening = draft;
-    creatorTick.value++;
-    goToTab.value = 1;
   }
 }

@@ -3,7 +3,12 @@ import '../../app/app_theme.dart';
 import 'draft_store.dart';
 
 class LibraryPage extends StatefulWidget {
-  const LibraryPage({super.key});
+  const LibraryPage({
+    super.key,
+    required this.onOpenDraft,
+  });
+
+  final void Function(Draft draft) onOpenDraft;
 
   @override
   State<LibraryPage> createState() => _LibraryPageState();
@@ -94,7 +99,7 @@ class _LibraryPageState extends State<LibraryPage> {
                           color: AppTheme.surface,
                           borderRadius: BorderRadius.circular(18),
                           child: ListTile(
-                            onTap: () => DraftStore.openInCreator(draft),
+                            onTap: () => widget.onOpenDraft(draft), // Callback usado aqui
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(18),
                               side: const BorderSide(color: Color(0x22FFFFFF)),

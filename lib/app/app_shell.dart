@@ -13,21 +13,13 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   int _index = 1;
+  Draft? _draftToOpen;
 
-  @override
-  void initState() {
-    super.initState();
-    DraftStore.creatorTick.addListener(_openCreator);
-  }
-
-  @override
-  void dispose() {
-    DraftStore.creatorTick.removeListener(_openCreator);
-    super.dispose();
-  }
-
-  void _openCreator() {
-    setState(() => _index = 1);
+  void _handleOpenDraft(Draft draft) {
+    setState(() {
+      _draftToOpen = draft;
+      _index = 1; // Força a ida para a aba do Creator
+    });
   }
 
   @override
@@ -35,10 +27,23 @@ class _AppShellState extends State<AppShell> {
     return Scaffold(
       body: IndexedStack(
         index: _index,
-        children: const [
-          HallPage(),
-          CreatorPage(),
-          LibraryPage(),
+        // Removido o 'const' para permitir passagem de propriedades dinâmicas
+        children: [
+          const HallPage(),
+          CreatorPage(
+            pendingDraft: _draftToOpen,
+            onDraftConsumed: () {
+              // Limpa o draft após consumido para não reaplicar
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted && _draftToOpen != null) {
+                  setState(() => _draftToOpen = null);
+                }
+              });
+            },
+          ),
+          LibraryPage(
+            onOpenDraft: _handleOpenDraft,
+          ),
         ],
       ),
       bottomNavigationBar: NavigationBar(

@@ -7,7 +7,14 @@ import '../../app/app_theme.dart';
 import '../library/draft_store.dart';
 
 class CreatorPage extends StatefulWidget {
-  const CreatorPage({super.key});
+  const CreatorPage({
+    super.key,
+    this.pendingDraft,
+    this.onDraftConsumed,
+  });
+
+  final Draft? pendingDraft;
+  final VoidCallback? onDraftConsumed;
 
   @override
   State<CreatorPage> createState() => _CreatorPageState();
@@ -18,6 +25,7 @@ class _CreatorPageState extends State<CreatorPage> {
 
   final GlobalKey _cardKey = GlobalKey();
 
+  String? _appliedDraftId; // Controle de estado exigido pelo Grok
   String? title;
   String? artist;
   String? lyrics;
@@ -32,26 +40,23 @@ class _CreatorPageState extends State<CreatorPage> {
   bool get hasExcerpt => selectedLyricText.isNotEmpty;
 
   @override
-  void initState() {
-    super.initState();
-    DraftStore.creatorTick.addListener(_openPendingDraft);
+  void didUpdateWidget(covariant CreatorPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final newDraft = widget.pendingDraft;
+    // Só aplica se for não nulo e diferente do último que processamos
+    if (newDraft != null && newDraft.id != _appliedDraftId) {
+      _applyDraft(newDraft);
+    }
   }
 
-  @override
-  void dispose() {
-    DraftStore.creatorTick.removeListener(_openPendingDraft);
-    super.dispose();
-  }
-
-  void _openPendingDraft() {
-    final draft = DraftStore.opening;
-    if (draft == null) return;
-    DraftStore.opening = null;
+  void _applyDraft(Draft draft) {
     setState(() {
+      _appliedDraftId = draft.id;
       title = draft.title;
       artist = draft.artist;
       lyrics = draft.lyrics;
-      audioFile = null;
+      audioFile = null; // Áudio não volta (comportamento mantido de propósito)
+      
       if (draft.selectedLines.isNotEmpty) {
         rangeStart = draft.selectedLines.first;
         rangeEnd = draft.selectedLines.last;
@@ -62,6 +67,8 @@ class _CreatorPageState extends State<CreatorPage> {
         anchor = null;
       }
     });
+    // Avisa o shell para limpar
+    widget.onDraftConsumed?.call();
   }
 
   List<String> get lyricLines {
@@ -286,7 +293,7 @@ class _CreatorPageState extends State<CreatorPage> {
     }
 
     try {
-      await DraftStore.add(
+      await DraftStore.add( // Mantido como estava de propósito
         Draft(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
           title: title ?? '',
