@@ -87,8 +87,16 @@ class DraftStore {
     }
   }
 
-  static Future<void> add(Draft draft) async {
-    drafts.insert(0, draft);
+  // Novo método Save (substitui o add)
+  static Future<void> save(Draft draft) async {
+    final index = drafts.indexWhere((item) => item.id == draft.id);
+    
+    if (index >= 0) {
+      drafts[index] = draft; // Atualiza o existente
+    } else {
+      drafts.insert(0, draft); // Insere como novo
+    }
+    
     version.value++;
     await _persist();
   }

@@ -25,7 +25,7 @@ class _CreatorPageState extends State<CreatorPage> {
 
   final GlobalKey _cardKey = GlobalKey();
 
-  String? _appliedDraftId; // Controle de estado exigido pelo Grok
+  String? _appliedDraftId;
   String? title;
   String? artist;
   String? lyrics;
@@ -43,7 +43,6 @@ class _CreatorPageState extends State<CreatorPage> {
   void didUpdateWidget(covariant CreatorPage oldWidget) {
     super.didUpdateWidget(oldWidget);
     final newDraft = widget.pendingDraft;
-    // Só aplica se for não nulo e diferente do último que processamos
     if (newDraft != null && newDraft.id != _appliedDraftId) {
       _applyDraft(newDraft);
     }
@@ -55,7 +54,7 @@ class _CreatorPageState extends State<CreatorPage> {
       title = draft.title;
       artist = draft.artist;
       lyrics = draft.lyrics;
-      audioFile = null; // Áudio não volta (comportamento mantido de propósito)
+      audioFile = null; 
       
       if (draft.selectedLines.isNotEmpty) {
         rangeStart = draft.selectedLines.first;
@@ -67,7 +66,6 @@ class _CreatorPageState extends State<CreatorPage> {
         anchor = null;
       }
     });
-    // Avisa o shell para limpar
     widget.onDraftConsumed?.call();
   }
 
@@ -293,9 +291,11 @@ class _CreatorPageState extends State<CreatorPage> {
     }
 
     try {
-      await DraftStore.add( // Mantido como estava de propósito
+      final draftId = _appliedDraftId ?? DateTime.now().millisecondsSinceEpoch.toString();
+
+      await DraftStore.save(
         Draft(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: draftId,
           title: title ?? '',
           artist: artist ?? '',
           lyrics: lyrics ?? '',
@@ -304,6 +304,13 @@ class _CreatorPageState extends State<CreatorPage> {
           createdAt: DateTime.now(),
         ),
       );
+      
+      if (mounted) {
+        setState(() {
+          _appliedDraftId = draftId;
+        });
+      }
+
       await _showMessage('Salvo na Library.');
     } catch (error) {
       await _showMessage('Salvou na sessão, disco falhou:\n$error');
