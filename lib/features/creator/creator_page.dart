@@ -69,6 +69,20 @@ class _CreatorPageState extends State<CreatorPage> {
     widget.onDraftConsumed?.call();
   }
 
+  // Novo método para limpar o estado e iniciar um rascunho do zero
+  void _startNew() {
+    setState(() {
+      _appliedDraftId = null;
+      title = null;
+      artist = null;
+      lyrics = null;
+      audioFile = null;
+      rangeStart = null;
+      rangeEnd = null;
+      anchor = null;
+    });
+  }
+
   List<String> get lyricLines {
     if (lyrics == null || lyrics!.trim().isEmpty) return const [];
     return lyrics!.split('\n');
@@ -301,7 +315,7 @@ class _CreatorPageState extends State<CreatorPage> {
           lyrics: lyrics ?? '',
           selectedLines: selectedIndexes,
           audioName: audioFile?.name,
-          createdAt: DateTime.now(),
+          createdAt: DateTime.now(), // Esse createdAt só será usado se for um draft NOVO
         ),
       );
       
@@ -327,14 +341,28 @@ class _CreatorPageState extends State<CreatorPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Creator',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.text,
-                letterSpacing: -0.4,
-              ),
+            // Row com título e botão Novo
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Creator',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.text,
+                    letterSpacing: -0.4,
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: _startNew,
+                  icon: const Icon(Icons.add_circle_outline, size: 20),
+                  label: const Text('Novo'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppTheme.text,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 6),
             Text(

@@ -87,12 +87,22 @@ class DraftStore {
     }
   }
 
-  // Novo método Save (substitui o add)
   static Future<void> save(Draft draft) async {
     final index = drafts.indexWhere((item) => item.id == draft.id);
     
     if (index >= 0) {
-      drafts[index] = draft; // Atualiza o existente
+      // Pega o rascunho original para não perder a data de criação
+      final original = drafts[index];
+      
+      drafts[index] = Draft(
+        id: draft.id,
+        title: draft.title,
+        artist: draft.artist,
+        lyrics: draft.lyrics,
+        selectedLines: draft.selectedLines,
+        audioName: draft.audioName,
+        createdAt: original.createdAt, // Preserva a data original!
+      );
     } else {
       drafts.insert(0, draft); // Insere como novo
     }
